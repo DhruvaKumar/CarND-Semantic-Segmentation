@@ -108,8 +108,8 @@ def run():
     # Download pretrained vgg model
     helper.maybe_download_pretrained_vgg(data_dir)
 
-    # X = tf.placeholder(tf.float32, [None, image_shape[0], image_shape[1]])
-    # Y = tf.placeholder(tf.float32, [None, num_classes])
+    X = tf.placeholder(tf.float32, [None, image_shape[0], image_shape[1]])
+    Y = tf.placeholder(tf.float32, [None, num_classes])
 
     # OPTIONAL: Train and Inference on the cityscapes dataset instead of the Kitti dataset.
     # You'll need a GPU with at least 10 teraFLOPS to train on.
@@ -125,19 +125,25 @@ def run():
         #  https://datascience.stackexchange.com/questions/5224/how-to-prepare-augment-images-for-neural-network
 
         # TODO: Build NN using load_vgg, layers, and optimize function
-        # image_input, keep_prob, layer3_out, layer4_out, layer7_out = load_vgg(sess, vgg_path)
+        image_input, keep_prob, layer3_out, layer4_out, layer7_out = load_vgg(sess, vgg_path)
 
         # last_layer = layers(layer3_out, layer4_out, layer7_out, num_classes)
 
         # TODO: Train NN using the train_nn function
 
         # attempting to pass 1 image and save realtime stats
-        # desire tensory shapes throughout the graph
-        # writer = tf.summary.FileWriter("tfgraphs/")
+        # desire tensor shapes throughout the graph
+        writer = tf.summary.FileWriter("tfgraphs/")
         # writer.add_graph(sess.graph)
+        run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+        run_metadata = tf.RunMetadata()
 
-        # x,gt = get_batches_fn(1)
-        # sess.run(, feed_dict={X: x})
+        x, _ = get_batches_fn(1)
+        out = sess.run(layer7_out, feed_dict={image_input: x},
+                        options=run_options,
+                        run_metadata=run_metadata)
+
+        writer.add_run_metadata(run_metadata)
 
         # TODO: Save inference data using helper.save_inference_samples
         #  helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
