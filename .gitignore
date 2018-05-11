@@ -3,6 +3,7 @@ __pycache__
 data/
 tmp/
 runs/
+logs/
 
 exploration/tfgraphs/
 notes.md
