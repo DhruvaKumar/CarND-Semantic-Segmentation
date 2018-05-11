@@ -4,7 +4,7 @@ import helper
 import warnings
 from distutils.version import LooseVersion
 import project_tests as tests
-
+from glob import glob
 
 # Check TensorFlow Version
 assert LooseVersion(tf.__version__) >= LooseVersion('1.0'), 'Please use TensorFlow version 1.0 or newer.  You are using {}'.format(tf.__version__)
@@ -61,27 +61,32 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     with tf.name_scope("decoder1"):
         # upsample layer7 by 2 
         # if input is 224x224: (7x7xx4096) => (14x14xnum_classes)
-        input = tf.layers.conv2d_transpose(vgg_layer7_out, num_classes, 4, strides=(2,2))
+        input = tf.layers.conv2d_transpose(vgg_layer7_out, num_classes,4,
+         strides=(2,2), padding='SAME')
 
         # add skip connection
         # first convert pool4 to output dimensions of num_classes by adding a 1x1 conv
-        pool4_11 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1, strides=(1,1))
+        pool4_11 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1,
+         strides=(1,1), padding='SAME')
         decoder1 = tf.add(pool4_11, input) 
     
     # decoder 2
     with tf.name_scope("decoder2"):
         # upsample by 2
         # (14x14xnum_classes) => (28x28xnum_classes)
-        input = tf.layers.conv2d_transpose(decoder1, num_classes, 4, strides=(2,2))
+        input = tf.layers.conv2d_transpose(decoder1, num_classes, 4,
+         strides=(2,2), padding='SAME')
 
         # add skip connection
         # first convert pool3 to output dimensions of num_classes by adding a 1x1 conv
-        pool3_11 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1, strides=(1,1))
+        pool3_11 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1,
+         strides=(1,1), padding='SAME')
         decoder2 = tf.add(pool3_11, input)
 
     # output
     with tf.name_scope("output"):
-        output = tf.layers.conv2d_transpose(decoder2, num_classes, 16, strides=(8,8))
+        output = tf.layers.conv2d_transpose(decoder2, num_classes, 16,
+         strides=(8,8), padding='SAME')
 
     return output
 tests.test_layers(layers)
@@ -127,9 +132,27 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     :param keep_prob: TF Placeholder for dropout keep probability
     :param learning_rate: TF Placeholder for learning rate
     """
-    # TODO: Implement function
-    pass
-# tests.test_train_nn(train_nn)
+    
+    # initialize global variables
+    sess.run(tf.global_variables_initializer())
+
+    print('training...')
+
+    for e in range(epochs):
+        print("epoch: {}".format(e))
+
+        for images, ground_truth in get_batches_fn(batch_size):
+            _, loss = sess.run([train_op, cross_entropy_loss],
+             feed_dict={input_image: images,
+             correct_label: ground_truth,
+             keep_prob: 0.5, learning_rate: 0.001})
+
+            print("epoch {}: training loss {:.4f}".format(e, loss))
+
+    print('training done!')
+
+    # pass
+tests.test_train_nn(train_nn)
 
 
 def run():
@@ -137,13 +160,17 @@ def run():
     image_shape = (160, 576)
     data_dir = './data'
     runs_dir = './runs'
-    tests.test_for_kitti_dataset(data_dir)
+    # tests.test_for_kitti_dataset(data_dir)
 
     # Download pretrained vgg model
     helper.maybe_download_pretrained_vgg(data_dir)
 
+    input_image = tf.placeholder(tf.float32, shape=[None, *image_shape, 3])
     correct_label = tf.placeholder(tf.float32, shape=[None, *image_shape, num_classes])
     learning_rate = tf.placeholder(tf.float32, shape=[])
+
+    epochs = 10
+    batch_size = 5
 
     # OPTIONAL: Train and Inference on the cityscapes dataset instead of the Kitti dataset.
     # You'll need a GPU with at least 10 teraFLOPS to train on.
@@ -153,19 +180,23 @@ def run():
         # Path to vgg model
         vgg_path = os.path.join(data_dir, 'vgg')
         # Create function to get batches
-        get_batches_fn = helper.gen_batch_function(os.path.join(data_dir, 'data_road/training'), image_shape)
+        get_batches_fn = helper.gen_batch_function(os.path.join(data_dir,
+         'data_road/training'), image_shape)
 
         # OPTIONAL: Augment Images for better results
         #  https://datascience.stackexchange.com/questions/5224/how-to-prepare-augment-images-for-neural-network
 
-        # TODO: Build NN using load_vgg, layers, and optimize function
-        image_input, keep_prob, layer3_out, layer4_out, layer7_out = load_vgg(sess, vgg_path)
+        #  Build NN using load_vgg, layers, and optimize function
+        input_image, keep_prob, layer3_out, layer4_out, layer7_out = load_vgg(sess, vgg_path)
 
         output = layers(layer3_out, layer4_out, layer7_out, num_classes)
 
-        logits, train_op, cross_entropy_loss = optimize(output, correct_label, learning_rate, num_classes)
+        _, train_op, cross_entropy_loss = optimize(output, correct_label,
+         learning_rate, num_classes)
         
         # TODO: Train NN using the train_nn function
+        train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss,
+         input_image, correct_label, keep_prob, learning_rate)
 
         # TODO: Save inference data using helper.save_inference_samples
         #  helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
