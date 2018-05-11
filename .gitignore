@@ -2,6 +2,7 @@
 __pycache__
 data/
 tmp/
+runs/
 
 exploration/tfgraphs/
 notes.md
