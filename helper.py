@@ -79,7 +79,8 @@ def gen_batch_function(data_folder, image_shape):
         background_color = np.array([255, 0, 0])
 
         random.shuffle(image_paths)
-        for batch_i in range(0, len(image_paths), batch_size):
+        # for batch_i in range(0, len(image_paths), batch_size):
+        for batch_i in range(0, batch_size):
             images = []
             gt_images = []
             for image_file in image_paths[batch_i:batch_i+batch_size]:
@@ -119,11 +120,11 @@ def gen_test_output(sess, logits, keep_prob, image_pl, data_folder, image_shape)
         image = cv2.resize(cv2.imread(image_file), image_shape[::-1])
 
         im_softmax = sess.run(
-            [tf.nn.softmax(logits)],
-            {keep_prob: 1.0, image_pl: [image]})
+            tf.nn.softmax(logits),
+            {keep_prob: 1.0, image_pl: image[None,:]})
         im_softmax = im_softmax[0][:,:,1]
         segmentation = (im_softmax > 0.5)[:,:,None]
-        mask = np.dot(segmentation, np.array([[0, 255, 0], dtype='uint8']))
+        mask = np.dot(segmentation, np.array([[0, 255, 0]], dtype='uint8'))
         street_im = cv2.addWeighted(image, 1, mask, 0.5, 0)
         # mask = scipy.misc.toimage(mask, mode="RGBA")
         # street_im = scipy.misc.toimage(image)
