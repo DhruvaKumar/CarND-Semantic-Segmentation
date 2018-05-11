@@ -170,7 +170,7 @@ def run():
     learning_rate = tf.placeholder(tf.float32, shape=[])
 
     epochs = 1
-    batch_size = 289
+    batch_size = 1
 
     # OPTIONAL: Train and Inference on the cityscapes dataset instead of the Kitti dataset.
     # You'll need a GPU with at least 10 teraFLOPS to train on.
