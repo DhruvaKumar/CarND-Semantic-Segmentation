@@ -57,11 +57,34 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     :return: The Tensor for the last layer of output
     """
 
+    # decoder 1
+    with tf.name_scope("decoder1"):
+        # upsample layer7 by 2 
+        # if input is 224x224: (7x7xx4096) => (14x14xnum_classes)
+        input = tf.layers.conv2d_transpose(vgg_layer7_out, num_classes, 4, strides=(2,2))
 
+        # add skip connection
+        # first convert pool4 to output dimensions of num_classes by adding a 1x1 conv
+        pool4_11 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1, strides=(1,1))
+        decoder1 = tf.add(pool4_11, input) 
     
+    # decoder 2
+    with tf.name_scope("decoder2"):
+        # upsample by 2
+        # (14x14xnum_classes) => (28x28xnum_classes)
+        input = tf.layers.conv2d_transpose(decoder1, num_classes, 4, strides=(2,2))
 
-    return None
-# tests.test_layers(layers)
+        # add skip connection
+        # first convert pool3 to output dimensions of num_classes by adding a 1x1 conv
+        pool3_11 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1, strides=(1,1))
+        decoder2 = tf.add(pool3_11, input)
+
+    # output
+    with tf.name_scope("output"):
+        output = tf.layers.conv2d_transpose(decoder2, num_classes, 16, strides=(8,8))
+
+    return output
+tests.test_layers(layers)
 
 
 def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
@@ -108,9 +131,6 @@ def run():
     # Download pretrained vgg model
     helper.maybe_download_pretrained_vgg(data_dir)
 
-    X = tf.placeholder(tf.float32, [None, image_shape[0], image_shape[1]])
-    Y = tf.placeholder(tf.float32, [None, num_classes])
-
     # OPTIONAL: Train and Inference on the cityscapes dataset instead of the Kitti dataset.
     # You'll need a GPU with at least 10 teraFLOPS to train on.
     #  https://www.cityscapes-dataset.com/
@@ -130,20 +150,6 @@ def run():
         # last_layer = layers(layer3_out, layer4_out, layer7_out, num_classes)
 
         # TODO: Train NN using the train_nn function
-
-        # attempting to pass 1 image and save realtime stats
-        # desire tensor shapes throughout the graph
-        writer = tf.summary.FileWriter("tfgraphs/")
-        # writer.add_graph(sess.graph)
-        run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-        run_metadata = tf.RunMetadata()
-
-        x, _ = get_batches_fn(1)
-        out = sess.run(layer7_out, feed_dict={image_input: x},
-                        options=run_options,
-                        run_metadata=run_metadata)
-
-        writer.add_run_metadata(run_metadata)
 
         # TODO: Save inference data using helper.save_inference_samples
         #  helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
