@@ -5,6 +5,7 @@ import warnings
 from distutils.version import LooseVersion
 import project_tests as tests
 from glob import glob
+from datetime import datetime
 
 # Check TensorFlow Version
 assert LooseVersion(tf.__version__) >= LooseVersion('1.0'), 'Please use TensorFlow version 1.0 or newer.  You are using {}'.format(tf.__version__)
@@ -160,6 +161,7 @@ def run():
     image_shape = (160, 576)
     data_dir = './data'
     runs_dir = './runs'
+    logs_dir = './logs'
     # tests.test_for_kitti_dataset(data_dir)
 
     # Download pretrained vgg model
@@ -169,8 +171,8 @@ def run():
     correct_label = tf.placeholder(tf.float32, shape=[None, *image_shape, num_classes])
     learning_rate = tf.placeholder(tf.float32, shape=[])
 
-    epochs = 1
-    batch_size = 1
+    epochs = 10
+    batch_size = 5
 
     # OPTIONAL: Train and Inference on the cityscapes dataset instead of the Kitti dataset.
     # You'll need a GPU with at least 10 teraFLOPS to train on.
@@ -197,6 +199,15 @@ def run():
         #  Train NN using the train_nn function
         train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss,
          input_image, correct_label, keep_prob, learning_rate)
+
+        # save graph
+        writer = tf.summary.FileWriter(logs_dir)
+        writer.add_graph(sess.graph)
+
+        # save model
+        saver = tf.train.Saver()
+        timenow = datetime.now().strftime('%Y%m%d-%H%M%S')
+        saver.save(sess, os.path.join(runs_dir, timenow))
 
         # Save inference data using helper.save_inference_samples
         helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, output, keep_prob, input_image)
