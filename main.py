@@ -96,9 +96,20 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     :param num_classes: Number of classes to classify
     :return: Tuple of (logits, train_op, cross_entropy_loss)
     """
-    # TODO: Implement function
-    return None, None, None
-# tests.test_optimize(optimize)
+    
+    with tf.name_scope("xent"):
+        logits = cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(labels=correct_label,
+        logits=nn_last_layer)
+
+    with tf.name_scope("loss"):
+        cross_entropy_loss = tf.reduce_mean(cross_entropy)
+
+    with tf.name_scope("train"):
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+        train_op = optimizer.minimize(cross_entropy_loss)
+
+    return logits, train_op, cross_entropy_loss
+tests.test_optimize(optimize)
 
 
 def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, input_image,
@@ -131,6 +142,9 @@ def run():
     # Download pretrained vgg model
     helper.maybe_download_pretrained_vgg(data_dir)
 
+    correct_label = tf.placeholder(tf.float32, shape=[None, *image_shape, num_classes])
+    learning_rate = tf.placeholder(tf.float32, shape=[])
+
     # OPTIONAL: Train and Inference on the cityscapes dataset instead of the Kitti dataset.
     # You'll need a GPU with at least 10 teraFLOPS to train on.
     #  https://www.cityscapes-dataset.com/
@@ -147,8 +161,10 @@ def run():
         # TODO: Build NN using load_vgg, layers, and optimize function
         image_input, keep_prob, layer3_out, layer4_out, layer7_out = load_vgg(sess, vgg_path)
 
-        # last_layer = layers(layer3_out, layer4_out, layer7_out, num_classes)
+        output = layers(layer3_out, layer4_out, layer7_out, num_classes)
 
+        logits, train_op, cross_entropy_loss = optimize(output, correct_label, learning_rate, num_classes)
+        
         # TODO: Train NN using the train_nn function
 
         # TODO: Save inference data using helper.save_inference_samples
