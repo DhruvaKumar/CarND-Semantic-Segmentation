@@ -62,7 +62,7 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     with tf.name_scope("decoder1"):
         # add 1x1 conv to layer7 to output num_classes dimensions
         # if input is 224x224: (7x7xx4096) => (7x7xnum_classes)
-        l7_1x1 = tf.layers.con2d(vgg_layer7_out, num_classes, 1,
+        l7_1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1,
          strides=(1,1), padding='SAME',
          kernel_initializer= tf.truncated_normal_initializer(stddev=0.01),
          kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3))
@@ -131,7 +131,7 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
         cross_entropy_loss = tf.reduce_mean(cross_entropy)
         # add L2 regularization loss
         reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
-        reg_loss = tf.add_n(reg_losses)
+        reg_loss = sum(reg_losses)
         total_loss = tf.add(cross_entropy_loss, reg_loss)
 
     with tf.name_scope("train"):
@@ -170,7 +170,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
             _, loss = sess.run([train_op, cross_entropy_loss],
              feed_dict={input_image: images,
              correct_label: ground_truth,
-             keep_prob: 0.5, learning_rate: 0.001})
+             keep_prob: 0.5, learning_rate: 0.0001})
 
             print("epoch {}: training loss {:.4f}".format(e, loss))
 
