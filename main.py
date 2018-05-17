@@ -63,36 +63,51 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
         # add 1x1 conv to layer7 to output num_classes dimensions
         # if input is 224x224: (7x7xx4096) => (7x7xnum_classes)
         l7_1x1 = tf.layers.con2d(vgg_layer7_out, num_classes, 1,
-         strides=(1,1), padding='SAME')
+         strides=(1,1), padding='SAME',
+         kernel_initializer= tf.truncated_normal_initializer(stddev=0.01),
+         kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3))
     
         # upsample by 2
-        # if input is 224x224: (7x7xnum_classes) => (14x14xnum_classes)
+        # (7x7xnum_classes) => (14x14xnum_classes)
         dec1_upsampled = tf.layers.conv2d_transpose(l7_1x1, num_classes, 4,
-         strides=(2,2), padding='SAME')
+         strides=(2,2), padding='SAME',
+         kernel_initializer= tf.truncated_normal_initializer(stddev=0.01),
+         kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3))
 
         # add skip connection
         # first convert pool4 to output dimensions of num_classes by adding a 1x1 conv
         pool4_1x1 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1,
-         strides=(1,1), padding='SAME')
+         strides=(1,1), padding='SAME',
+         kernel_initializer= tf.truncated_normal_initializer(stddev=0.01),
+         kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3))
+
         decoder1 = tf.add(pool4_1x1, dec1_upsampled) 
     
+
     # decoder 2
     with tf.name_scope("decoder2"):
         # upsample by 2
         # (14x14xnum_classes) => (28x28xnum_classes)
         dec2_upsampled = tf.layers.conv2d_transpose(decoder1, num_classes, 4,
-         strides=(2,2), padding='SAME')
+         strides=(2,2), padding='SAME',
+         kernel_initializer= tf.truncated_normal_initializer(stddev=0.01),
+         kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3))
 
         # add skip connection
         # first convert pool3 to output dimensions of num_classes by adding a 1x1 conv
         pool3_1x1 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1,
-         strides=(1,1), padding='SAME')
+         strides=(1,1), padding='SAME',
+         kernel_initializer= tf.truncated_normal_initializer(stddev=0.01),
+         kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3))
+
         decoder2 = tf.add(pool3_1x1, dec2_upsampled)
 
     # output
     with tf.name_scope("output"):
         logits = tf.layers.conv2d_transpose(decoder2, num_classes, 16,
-         strides=(8,8), padding='SAME', name='logits')
+         strides=(8,8), padding='SAME', name='logits',
+         kernel_initializer= tf.truncated_normal_initializer(stddev=0.01),
+         kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3))
 
     return logits
 tests.test_layers(layers)
@@ -114,12 +129,16 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
 
     with tf.name_scope("loss"):
         cross_entropy_loss = tf.reduce_mean(cross_entropy)
+        # add L2 regularization loss
+        reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+        reg_loss = tf.add_n(reg_losses)
+        total_loss = tf.add(cross_entropy_loss, reg_loss)
 
     with tf.name_scope("train"):
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
-        train_op = optimizer.minimize(cross_entropy_loss)
+        train_op = optimizer.minimize(total_loss)
 
-    return None, train_op, cross_entropy_loss
+    return None, train_op, total_loss
 tests.test_optimize(optimize)
 
 
