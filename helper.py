@@ -81,7 +81,6 @@ def gen_batch_function(data_folder, image_shape):
 
         random.shuffle(image_paths)
         for batch_i in range(0, len(image_paths), batch_size):
-        # for batch_i in range(0, batch_size):
             images = []
             gt_images = []
             for image_file in image_paths[batch_i:batch_i+batch_size]:
@@ -119,7 +118,7 @@ def gen_test_output(sess, logits, keep_prob, image_pl, data_folder, image_shape)
     """
     for image_file in glob(os.path.join(data_folder, 'image_2', '*.png')):
         # image = scipy.misc.imresize(scipy.misc.imread(image_file), image_shape)
-        image = cv2.resize(cv2.imread(image_file), image_shape[::-1])
+        image = cv2.resize(cv2.imread(image_file)[:,:,::-1], image_shape[::-1])
 
         im_softmax = sess.run(
             tf.nn.softmax(logits),
