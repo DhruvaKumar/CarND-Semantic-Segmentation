@@ -89,10 +89,11 @@ def gen_batch_function(data_folder, image_shape):
 
                 # scipy imresize deprecated. i can bump down the version of scipy. but eh.
                 # let's use opencv
+                # note: imread reads in BGR. convert to RGB!
                 # image = scipy.misc.imresize(scipy.misc.imread(image_file), image_shape)
                 # gt_image = scipy.misc.imresize(scipy.misc.imread(gt_image_file), image_shape)
-                image = cv2.resize(cv2.imread(image_file), image_shape[::-1])
-                gt_image = cv2.resize(cv2.imread(gt_image_file), image_shape[::-1])
+                image = cv2.resize(cv2.imread(image_file)[:,:,::-1], image_shape[::-1])
+                gt_image = cv2.resize(cv2.imread(gt_image_file)[:,:,::-1], image_shape[::-1])
 
                 gt_bg = np.all(gt_image == background_color, axis=2)
                 gt_bg = gt_bg.reshape(*gt_bg.shape, 1)
