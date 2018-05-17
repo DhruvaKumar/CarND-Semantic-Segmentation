@@ -4,6 +4,7 @@ data/
 tmp/
 runs/
 logs/
+img/
 
 exploration/tfgraphs/
 notes.md
