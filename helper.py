@@ -72,7 +72,8 @@ def gen_batch_function(data_folder, image_shape):
         :param batch_size: Batch Size
         :return: Batches of training data
         """
-        image_paths = glob(os.path.join(data_folder, 'image_2', '*.png'))
+        # image_paths = glob(os.path.join(data_folder, 'image_2', '*.png'))
+        image_paths = glob(os.path.join(data_folder, 'overfit', '*.png'))  # overfit on one image
         label_paths = {
             re.sub(r'_(lane|road)_', '_', os.path.basename(path)): path
             for path in glob(os.path.join(data_folder, 'gt_image_2', '*_road_*.png'))}
