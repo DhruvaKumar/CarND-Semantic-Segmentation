@@ -195,7 +195,7 @@ def run():
     correct_label = tf.placeholder(tf.float32, shape=[None, *image_shape, num_classes], name='correctlabel')
     learning_rate = tf.placeholder(tf.float32, shape=[])
 
-    epochs = 30
+    epochs = 50
     batch_size = 1
 
     # OPTIONAL: Train and Inference on the cityscapes dataset instead of the Kitti dataset.
