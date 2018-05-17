@@ -60,29 +60,34 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
 
     # decoder 1
     with tf.name_scope("decoder1"):
-        # upsample layer7 by 2 
-        # if input is 224x224: (7x7xx4096) => (14x14xnum_classes)
-        input = tf.layers.conv2d_transpose(vgg_layer7_out, num_classes,4,
+        # add 1x1 conv to layer7 to output num_classes dimensions
+        # if input is 224x224: (7x7xx4096) => (7x7xnum_classes)
+        l7_1x1 = tf.layers.con2d(vgg_layer7_out, num_classes, 1,
+         strides=(1,1), padding='SAME')
+    
+        # upsample by 2
+        # if input is 224x224: (7x7xnum_classes) => (14x14xnum_classes)
+        dec1_upsampled = tf.layers.conv2d_transpose(l7_1x1, num_classes, 4,
          strides=(2,2), padding='SAME')
 
         # add skip connection
         # first convert pool4 to output dimensions of num_classes by adding a 1x1 conv
-        pool4_11 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1,
+        pool4_1x1 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1,
          strides=(1,1), padding='SAME')
-        decoder1 = tf.add(pool4_11, input) 
+        decoder1 = tf.add(pool4_1x1, dec1_upsampled) 
     
     # decoder 2
     with tf.name_scope("decoder2"):
         # upsample by 2
         # (14x14xnum_classes) => (28x28xnum_classes)
-        input = tf.layers.conv2d_transpose(decoder1, num_classes, 4,
+        dec2_upsampled = tf.layers.conv2d_transpose(decoder1, num_classes, 4,
          strides=(2,2), padding='SAME')
 
         # add skip connection
         # first convert pool3 to output dimensions of num_classes by adding a 1x1 conv
-        pool3_11 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1,
+        pool3_1x1 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1,
          strides=(1,1), padding='SAME')
-        decoder2 = tf.add(pool3_11, input)
+        decoder2 = tf.add(pool3_1x1, dec2_upsampled)
 
     # output
     with tf.name_scope("output"):
