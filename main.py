@@ -196,7 +196,7 @@ def run():
     learning_rate = tf.placeholder(tf.float32, shape=[])
 
     epochs = 50
-    batch_size = 1
+    batch_size = 5
 
     # OPTIONAL: Train and Inference on the cityscapes dataset instead of the Kitti dataset.
     # You'll need a GPU with at least 10 teraFLOPS to train on.
@@ -234,7 +234,7 @@ def run():
         saver.save(sess, os.path.join(runs_dir, timenow))
 
         # Save inference data using helper.save_inference_samples
-        # helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logtis, keep_prob, input_image)
+        helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
 
         # OPTIONAL: Apply the trained model to a video
 
