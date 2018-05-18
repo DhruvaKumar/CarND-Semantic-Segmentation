@@ -74,13 +74,17 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
          kernel_initializer= tf.truncated_normal_initializer(stddev=0.01),
          kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3))
 
-        # add skip connection
-        # first convert pool4 to output dimensions of num_classes by adding a 1x1 conv
-        pool4_1x1 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1,
+        # scale pool4 for compatibility 
+        # performed by the authors: https://github.com/shelhamer/fcn.berkeleyvision.org
+        pool4_scaled = tf.multiply(vgg_layer4_out, 0.01)
+
+        # add 1x1 conv to scaled pool4 to output num_classes dimensions
+        pool4_1x1 = tf.layers.conv2d(pool4_scaled, num_classes, 1,
          strides=(1,1), padding='SAME',
          kernel_initializer= tf.truncated_normal_initializer(stddev=0.01),
          kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3))
 
+        # add skip connection
         decoder1 = tf.add(pool4_1x1, dec1_upsampled) 
     
 
@@ -93,13 +97,16 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
          kernel_initializer= tf.truncated_normal_initializer(stddev=0.01),
          kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3))
 
-        # add skip connection
-        # first convert pool3 to output dimensions of num_classes by adding a 1x1 conv
-        pool3_1x1 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1,
+        # scale pool3 for compatibility
+        pool3_scaled = tf.multiply(vgg_layer3_out, 0.0001)
+
+        # add 1x1 conv to scaled pool3 to output num_classes dimensions
+        pool3_1x1 = tf.layers.conv2d(pool3_scaled, num_classes, 1,
          strides=(1,1), padding='SAME',
          kernel_initializer= tf.truncated_normal_initializer(stddev=0.01),
          kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3))
 
+        # add skip connection
         decoder2 = tf.add(pool3_1x1, dec2_upsampled)
 
     # output
