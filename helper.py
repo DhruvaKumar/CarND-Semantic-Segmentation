@@ -147,4 +147,4 @@ def save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_p
         sess, logits, keep_prob, input_image, os.path.join(data_dir, 'data_road/testing'), image_shape)
     for name, image in image_outputs:
         # scipy.misc.imsave(os.path.join(output_dir, name), image)
-        cv2.imwrite(os.path.join(output_dir, name) ,image)
+        cv2.imwrite(os.path.join(output_dir, name) ,image[:,:,::-1]) # convert back to BGR
