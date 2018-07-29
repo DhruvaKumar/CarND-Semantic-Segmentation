@@ -61,7 +61,7 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     # decoder 1
     with tf.name_scope("decoder1"):
         # add 1x1 conv to layer7 to output num_classes dimensions
-        # if input is 224x224: (7x7xx4096) => (7x7xnum_classes)
+        # if input is 224x224: (7x7x4096) => (7x7xnum_classes)
         l7_1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1,
          strides=(1,1), padding='SAME',
          kernel_initializer= tf.truncated_normal_initializer(stddev=0.01),
@@ -193,7 +193,7 @@ def run():
     data_dir = './data'
     runs_dir = './runs'
     logs_dir = './logs'
-    # tests.test_for_kitti_dataset(data_dir)
+    tests.test_for_kitti_dataset(data_dir)
 
     # Download pretrained vgg model
     helper.maybe_download_pretrained_vgg(data_dir)
