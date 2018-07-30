@@ -8,7 +8,7 @@ The goal of this project is to perform semantic segmentation on images to label 
 Download the [Kitti Road dataset](http://www.cvlibs.net/datasets/kitti/eval_road.php) from [here](http://www.cvlibs.net/download.php?file=data_road.zip).  Extract the dataset in the `data` folder.  This will create the folder `data_road` with all the training and test images.
 
 ##### Pretrained VGG model
-`helper.py` downloads the pretrained frozen vgg model if it doesn't exist. Note that it's already convolutionalized, i.e, the fully connected layers have been replaced by 1x1 convolutions. 
+`helper.py` downloads the pretrained frozen vgg model if it doesn't exist. Note that it's already convolutionalized, i.e, the fully connected layers have been replaced by convolutional layers. 
 
 ##### Dependencies
 `conda env create -f environment.yml`
@@ -36,6 +36,12 @@ FCN8 from [Fully Convolutional Networks for Semantic Segmentation](https://arxiv
 ![alt text](./results/um_000074.png)
 ![alt text](./results/um_000078.png)
 ![alt text](./results/umm_000041.png)
+![alt text](./results/umm_000054.png)
+![alt text](./results/umm_000083.png)
+![alt text](./results/uu_000004.png)
+![alt text](./results/uu_000025.png)
+![alt text](./results/uu_000042.png)
+![alt text](./results/uu_000065.png)
 
 ### References
 
